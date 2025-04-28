@@ -1,7 +1,7 @@
-import Image from "next/image"
-import Link from "next/link"
-import { CommentForm } from "@/components/blog/comment-form"
-import { CommentList } from "@/components/blog/comment-list"
+import Image from "next/image";
+import Link from "next/link";
+import { CommentForm } from "@/components/blog/comment-form";
+import { CommentList } from "@/components/blog/comment-list";
 
 // Dummy data for a single post
 const DUMMY_POST = {
@@ -28,7 +28,7 @@ const DUMMY_POST = {
     bio: "Full-stack developer specializing in React and Next.js",
   },
   createdAt: "2023-04-15",
-}
+};
 
 // Dummy comments
 const DUMMY_COMMENTS = [
@@ -51,16 +51,18 @@ const DUMMY_COMMENTS = [
     },
     createdAt: "2023-04-17",
   },
-]
+];
 
-const isLoggedIn = true
+const isLoggedIn = true;
 
 export default function BlogPost({ params }: { params: { slug: string } }) {
   return (
     <div className="container mx-auto px-4 py-8">
       <article className="max-w-4xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">{DUMMY_POST.title}</h1>
+          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+            {DUMMY_POST.title}
+          </h1>
           <div className="flex items-center mb-6">
             <Image
               src={DUMMY_POST.author.image || "/placeholder.svg"}
@@ -70,9 +72,12 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
               className="rounded-full mr-4"
             />
             <div>
-              <p className="text-lg font-medium text-gray-900 dark:text-white">{DUMMY_POST.author.name}</p>
+              <p className="text-lg font-medium text-gray-900 dark:text-white">
+                {DUMMY_POST.author.name}
+              </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {new Date(DUMMY_POST.createdAt).toLocaleDateString()} •{DUMMY_POST.author.bio}
+                {new Date(DUMMY_POST.createdAt).toLocaleDateString()} •
+                {DUMMY_POST.author.bio}
               </p>
             </div>
           </div>
@@ -93,7 +98,9 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
         />
 
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Tags</h3>
+          <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            Tags
+          </h3>
           <div className="flex flex-wrap gap-2">
             {DUMMY_POST.tags.map((tag) => (
               <span
@@ -117,7 +124,10 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-8">
               <p className="text-gray-700 dark:text-gray-300">
                 Please{" "}
-                <Link href="/login" className="text-theme-purple-600 dark:text-theme-purple-400 hover:underline">
+                <Link
+                  href="/login"
+                  className="text-theme-purple-600 dark:text-theme-purple-400 hover:underline"
+                >
                   log in
                 </Link>{" "}
                 to leave a comment.
@@ -129,5 +139,5 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
         </section>
       </article>
     </div>
-  )
+  );
 }

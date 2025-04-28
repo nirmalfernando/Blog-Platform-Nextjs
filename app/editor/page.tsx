@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { ImageUpload } from "@/components/editor/image-upload"
-import { RichTextEditor } from "@/components/editor/rich-text-editor"
-import { AlertCircle, Save } from "lucide-react"
+import { useState } from "react";
+import { ImageUpload } from "@/components/editor/image-upload";
+import { RichTextEditor } from "@/components/editor/rich-text-editor";
+import { AlertCircle, Save } from "lucide-react";
 
 // Placeholders for categories
 const DUMMY_CATEGORIES = [
@@ -14,7 +14,7 @@ const DUMMY_CATEGORIES = [
   { id: "3", name: "DevOps" },
   { id: "4", name: "Data Science" },
   { id: "5", name: "Design" },
-]
+];
 
 export default function EditorPage() {
   const [formData, setFormData] = useState({
@@ -22,81 +22,85 @@ export default function EditorPage() {
     category: "",
     tags: "",
     content: "",
-  })
-  const [featuredImage, setFeaturedImage] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
-  const [isDraft, setIsDraft] = useState(false)
+  });
+  const [featuredImage, setFeaturedImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isDraft, setIsDraft] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
 
     // Clear error when user types
     if (formErrors[name]) {
       setFormErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[name]
-        return newErrors
-      })
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
-  }
+  };
 
   const handleContentChange = (content: string) => {
     setFormData((prev) => ({
       ...prev,
       content,
-    }))
+    }));
 
     // Clear error when user types
     if (formErrors.content) {
       setFormErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors.content
-        return newErrors
-      })
+        const newErrors = { ...prev };
+        delete newErrors.content;
+        return newErrors;
+      });
     }
-  }
+  };
 
   const handleImageChange = (imageUrl: string | null) => {
-    setFeaturedImage(imageUrl)
-  }
+    setFeaturedImage(imageUrl);
+  };
 
   const validateForm = () => {
-    const errors: Record<string, string> = {}
+    const errors: Record<string, string> = {};
 
     if (!formData.title.trim()) {
-      errors.title = "Title is required"
+      errors.title = "Title is required";
     }
 
     if (!formData.category) {
-      errors.category = "Category is required"
+      errors.category = "Category is required";
     }
 
     if (!formData.content.trim()) {
-      errors.content = "Content is required"
+      errors.content = "Content is required";
     }
 
-    return errors
-  }
+    return errors;
+  };
 
   const handleSubmit = async (e: React.FormEvent, saveAsDraft = false) => {
-    e.preventDefault()
-    setIsDraft(saveAsDraft)
+    e.preventDefault();
+    setIsDraft(saveAsDraft);
 
     // Only validate if not saving as draft
     if (!saveAsDraft) {
-      const errors = validateForm()
+      const errors = validateForm();
       if (Object.keys(errors).length > 0) {
-        setFormErrors(errors)
-        return
+        setFormErrors(errors);
+        return;
       }
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       // Placeholder for submission logic
@@ -104,29 +108,34 @@ export default function EditorPage() {
         ...formData,
         featuredImage,
         status: saveAsDraft ? "draft" : "published",
-      })
+      });
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Redirect to blog 
+      // Redirect to blog
       // window.location.href = saveAsDraft ? `/blog/${slug}`;
     } catch (error) {
-      console.error("Error submitting post:", error)
+      console.error("Error submitting post:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Create New Post</h1>
+        <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
+          Create New Post
+        </h1>
 
         <form className="space-y-6" onSubmit={(e) => handleSubmit(e, false)}>
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="title"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               Title
             </label>
             <input
@@ -136,7 +145,9 @@ export default function EditorPage() {
               value={formData.title}
               onChange={handleChange}
               className={`w-full px-3 py-2 border ${
-                formErrors.title ? "border-red-500" : "border-gray-300 dark:border-gray-700"
+                formErrors.title
+                  ? "border-red-500"
+                  : "border-gray-300 dark:border-gray-700"
               } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
               placeholder="Enter post title"
             />
@@ -150,7 +161,10 @@ export default function EditorPage() {
 
           {/* Category */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               Category
             </label>
             <select
@@ -159,7 +173,9 @@ export default function EditorPage() {
               value={formData.category}
               onChange={handleChange}
               className={`w-full px-3 py-2 border ${
-                formErrors.category ? "border-red-500" : "border-gray-300 dark:border-gray-700"
+                formErrors.category
+                  ? "border-red-500"
+                  : "border-gray-300 dark:border-gray-700"
               } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
             >
               <option value="">Select a category</option>
@@ -179,7 +195,10 @@ export default function EditorPage() {
 
           {/* Tags */}
           <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="tags"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               Tags (comma separated)
             </label>
             <input
@@ -198,10 +217,16 @@ export default function EditorPage() {
 
           {/* Content */}
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="content"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               Content
             </label>
-            <RichTextEditor initialValue={formData.content} onChange={handleContentChange} />
+            <RichTextEditor
+              initialValue={formData.content}
+              onChange={handleContentChange}
+            />
             {formErrors.content && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
@@ -232,5 +257,5 @@ export default function EditorPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

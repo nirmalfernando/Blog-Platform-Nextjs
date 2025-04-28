@@ -1,41 +1,44 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Blog", href: "/blog" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
-]
+];
 
 export function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const pathname = usePathname()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   // Check if a link is active
   const isActive = (path: string) => {
     if (path === "/") {
-      return pathname === path
+      return pathname === path;
     }
-    return pathname.startsWith(path)
-  }
+    return pathname.startsWith(path);
+  };
 
   // Close mobile menu when route changes
   useEffect(() => {
-    setIsMenuOpen(false)
-  }, [pathname])
+    setIsMenuOpen(false);
+  }, [pathname]);
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            <Link href="/" className="text-xl font-bold text-theme-purple-700 dark:text-theme-purple-400">
+            <Link
+              href="/"
+              className="text-xl font-bold text-theme-purple-700 dark:text-theme-purple-400"
+            >
               Blog Platform
             </Link>
           </div>
@@ -43,7 +46,11 @@ export function Header() {
           {/* Desktop navigation */}
           <nav className="hidden md:flex space-x-4">
             {navigation.map((item) => (
-              <Link key={item.name} href={item.href} className={isActive(item.href) ? "nav-link-active" : "nav-link"}>
+              <Link
+                key={item.name}
+                href={item.href}
+                className={isActive(item.href) ? "nav-link-active" : "nav-link"}
+              >
                 {item.name}
               </Link>
             ))}
@@ -70,7 +77,11 @@ export function Header() {
               className="ml-2 p-2 rounded-md text-gray-500 hover:text-theme-purple-700 dark:text-gray-400 dark:hover:text-theme-purple-400 focus:outline-none focus:ring-2 focus:ring-theme-purple-500 dark:focus:ring-theme-purple-500"
             >
               <span className="sr-only">Open main menu</span>
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
@@ -111,5 +122,5 @@ export function Header() {
         </div>
       )}
     </header>
-  )
+  );
 }

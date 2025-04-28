@@ -1,27 +1,30 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
+import { useState } from "react";
 
 interface CommentFormProps {
-  postId: string
+  postId: string;
 }
 
 export function CommentForm({ postId }: CommentFormProps) {
-  const [comment, setComment] = useState("")
+  const [comment, setComment] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Placeholder for comment submission logic
-    console.log("Submitting comment:", { postId, comment })
-    setComment("")
-  }
+    console.log("Submitting comment:", { postId, comment });
+    setComment("");
+  };
 
   return (
     <form onSubmit={handleSubmit} className="mb-8">
       <div className="mb-4">
-        <label htmlFor="comment" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label
+          htmlFor="comment"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
           Your comment
         </label>
         <textarea
@@ -41,5 +44,5 @@ export function CommentForm({ postId }: CommentFormProps) {
         Post Comment
       </button>
     </form>
-  )
+  );
 }

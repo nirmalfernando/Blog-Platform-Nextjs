@@ -1,63 +1,63 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
-  currentPage: number
-  totalPages: number
+  currentPage: number;
+  totalPages: number;
 }
 
 export function Pagination({ currentPage, totalPages }: PaginationProps) {
   // Generate page numbers to display
   const getPageNumbers = () => {
-    const pages = []
-    const maxPagesToShow = 5
+    const pages = [];
+    const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
       // Show all pages if there are fewer than maxPagesToShow
       for (let i = 1; i <= totalPages; i++) {
-        pages.push(i)
+        pages.push(i);
       }
     } else {
-      pages.push(1)
+      pages.push(1);
 
       // Calculate start and end of page range
-      let start = Math.max(2, currentPage - 1)
-      let end = Math.min(totalPages - 1, currentPage + 1)
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
 
       // Adjust based on current page
       if (currentPage <= 3) {
-        end = 4
+        end = 4;
       } else if (currentPage >= totalPages - 2) {
-        start = totalPages - 3
+        start = totalPages - 3;
       }
 
       // Add ellipsis if needed
       if (start > 2) {
-        pages.push(-1)
+        pages.push(-1);
       }
 
       // Add middle pages
       for (let i = start; i <= end; i++) {
-        pages.push(i)
+        pages.push(i);
       }
 
       // Add ellipsis if needed
       if (end < totalPages - 1) {
-        pages.push(-2) 
+        pages.push(-2);
       }
 
       // Always show last page
       if (totalPages > 1) {
-        pages.push(totalPages)
+        pages.push(totalPages);
       }
     }
 
-    return pages
-  }
+    return pages;
+  };
 
-  const pageNumbers = getPageNumbers()
+  const pageNumbers = getPageNumbers();
 
   return (
     <nav className="flex justify-center" aria-label="Pagination">
@@ -82,7 +82,9 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
         {pageNumbers.map((page, index) => (
           <li key={index}>
             {page === -1 || page === -2 ? (
-              <span className="px-3 py-2 text-gray-500 dark:text-gray-400">...</span>
+              <span className="px-3 py-2 text-gray-500 dark:text-gray-400">
+                ...
+              </span>
             ) : (
               <Link
                 href={`/blog?page=${page}`}
@@ -102,7 +104,9 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
 
         <li>
           <Link
-            href={currentPage === totalPages ? "#" : `/blog?page=${currentPage + 1}`}
+            href={
+              currentPage === totalPages ? "#" : `/blog?page=${currentPage + 1}`
+            }
             className={`flex items-center px-3 py-2 rounded-md ${
               currentPage === totalPages
                 ? "text-gray-400 cursor-not-allowed"
@@ -118,5 +122,5 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
         </li>
       </ul>
     </nav>
-  )
+  );
 }

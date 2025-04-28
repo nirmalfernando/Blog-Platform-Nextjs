@@ -1,37 +1,43 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 interface FilterPanelProps {
-  categories: string[]
-  tags: string[]
-  authors: string[]
+  categories: string[];
+  tags: string[];
+  authors: string[];
 }
 
 export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
-  const [selectedCategory, setSelectedCategory] = useState("All")
-  const [selectedAuthor, setSelectedAuthor] = useState("All")
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [showTags, setShowTags] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedAuthor, setSelectedAuthor] = useState("All");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showTags, setShowTags] = useState(false);
 
   const handleTagToggle = (tag: string) => {
     if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag))
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     } else {
-      setSelectedTags([...selectedTags, tag])
+      setSelectedTags([...selectedTags, tag]);
     }
-  }
+  };
 
   const applyFilters = () => {
     // Placeholder for filter application logic
-    console.log("Filtering by:", { selectedCategory, selectedAuthor, selectedTags })
-  }
+    console.log("Filtering by:", {
+      selectedCategory,
+      selectedAuthor,
+      selectedTags,
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">Categories</h3>
+        <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">
+          Categories
+        </h3>
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
@@ -46,7 +52,9 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
       </div>
 
       <div>
-        <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">Authors</h3>
+        <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">
+          Authors
+        </h3>
         <select
           value={selectedAuthor}
           onChange={(e) => setSelectedAuthor(e.target.value)}
@@ -62,13 +70,17 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
 
       <div>
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Tags</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            Tags
+          </h3>
           <button
             type="button"
             onClick={() => setShowTags(!showTags)}
             className="text-gray-500 dark:text-gray-400 hover:text-theme-purple-700 dark:hover:text-theme-purple-400"
           >
-            <ChevronDown className={`h-5 w-5 transform ${showTags ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`h-5 w-5 transform ${showTags ? "rotate-180" : ""}`}
+            />
           </button>
         </div>
 
@@ -83,7 +95,10 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
                   onChange={() => handleTagToggle(tag)}
                   className="h-4 w-4 text-theme-purple-600 focus:ring-theme-purple-500 border-gray-300 rounded"
                 />
-                <label htmlFor={`tag-${tag}`} className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor={`tag-${tag}`}
+                  className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                >
                   {tag}
                 </label>
               </div>
@@ -99,5 +114,5 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
         Apply Filters
       </button>
     </div>
-  )
+  );
 }

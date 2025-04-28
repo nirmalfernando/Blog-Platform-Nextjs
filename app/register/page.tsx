@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Eye, EyeOff } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -12,90 +12,90 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-  })
+  });
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
 
     // Clear error when user types
     if (formErrors[name]) {
       setFormErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[name]
-        return newErrors
-      })
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
-  }
+  };
 
   const validateForm = () => {
-    const errors: Record<string, string> = {}
+    const errors: Record<string, string> = {};
 
     if (!formData.username.trim()) {
-      errors.username = "Username is required"
+      errors.username = "Username is required";
     }
 
     if (!formData.email.trim()) {
-      errors.email = "Email is required"
+      errors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = "Email is invalid"
+      errors.email = "Email is invalid";
     }
 
     if (!formData.password) {
-      errors.password = "Password is required"
+      errors.password = "Password is required";
     } else if (formData.password.length < 8) {
-      errors.password = "Password must be at least 8 characters"
+      errors.password = "Password must be at least 8 characters";
     }
 
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Passwords do not match"
+      errors.confirmPassword = "Passwords do not match";
     }
 
     if (!agreedToTerms) {
-      errors.terms = "You must agree to the terms and conditions"
+      errors.terms = "You must agree to the terms and conditions";
     }
 
-    return errors
-  }
+    return errors;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const errors = validateForm()
+    const errors = validateForm();
     if (Object.keys(errors).length > 0) {
-      setFormErrors(errors)
-      return
+      setFormErrors(errors);
+      return;
     }
 
     // Placeholder for form submission logic for the registration process
-    console.log("Registration data:", formData)
+    console.log("Registration data:", formData);
 
     // Redirect to login page or show success message
-  }
+  };
 
   const getPasswordStrength = () => {
-    const { password } = formData
-    if (!password) return { strength: 0, label: "" }
+    const { password } = formData;
+    if (!password) return { strength: 0, label: "" };
 
-    let strength = 0
-    if (password.length >= 8) strength += 1
-    if (/[A-Z]/.test(password)) strength += 1
-    if (/[0-9]/.test(password)) strength += 1
-    if (/[^A-Za-z0-9]/.test(password)) strength += 1
+    let strength = 0;
+    if (password.length >= 8) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
 
-    const labels = ["Weak", "Fair", "Good", "Strong"]
-    return { strength, label: labels[strength - 1] || "" }
-  }
+    const labels = ["Weak", "Fair", "Good", "Strong"];
+    return { strength, label: labels[strength - 1] || "" };
+  };
 
-  const passwordStrength = getPasswordStrength()
+  const passwordStrength = getPasswordStrength();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -118,7 +118,10 @@ export default function RegisterPage() {
         <div className="mt-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Username
               </label>
               <input
@@ -131,12 +134,17 @@ export default function RegisterPage() {
                 placeholder="Choose a username"
               />
               {formErrors.username && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.username}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {formErrors.username}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Email
               </label>
               <input
@@ -148,11 +156,18 @@ export default function RegisterPage() {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="you@example.com"
               />
-              {formErrors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.email}</p>}
+              {formErrors.email && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {formErrors.email}
+                </p>
+              )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Password
               </label>
               <div className="relative">
@@ -170,11 +185,17 @@ export default function RegisterPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
               {formErrors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.password}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {formErrors.password}
+                </p>
               )}
 
               {formData.password && (
@@ -186,17 +207,19 @@ export default function RegisterPage() {
                           passwordStrength.strength === 1
                             ? "bg-red-500"
                             : passwordStrength.strength === 2
-                              ? "bg-yellow-500"
-                              : passwordStrength.strength === 3
-                                ? "bg-green-500"
-                                : passwordStrength.strength === 4
-                                  ? "bg-green-600"
-                                  : ""
+                            ? "bg-yellow-500"
+                            : passwordStrength.strength === 3
+                            ? "bg-green-500"
+                            : passwordStrength.strength === 4
+                            ? "bg-green-600"
+                            : ""
                         }`}
                         style={{ width: `${passwordStrength.strength * 25}%` }}
                       ></div>
                     </div>
-                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">{passwordStrength.label}</span>
+                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                      {passwordStrength.label}
+                    </span>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Use 8+ characters with a mix of letters, numbers & symbols
@@ -227,11 +250,17 @@ export default function RegisterPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
               {formErrors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.confirmPassword}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {formErrors.confirmPassword}
+                </p>
               )}
             </div>
 
@@ -247,17 +276,30 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="terms" className="text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="terms"
+                  className="text-gray-700 dark:text-gray-300"
+                >
                   I agree to the{" "}
-                  <a href="#" className="text-theme-purple-600 dark:text-theme-purple-400 hover:underline">
+                  <a
+                    href="#"
+                    className="text-theme-purple-600 dark:text-theme-purple-400 hover:underline"
+                  >
                     Terms of Service
                   </a>{" "}
                   and{" "}
-                  <a href="#" className="text-theme-purple-600 dark:text-theme-purple-400 hover:underline">
+                  <a
+                    href="#"
+                    className="text-theme-purple-600 dark:text-theme-purple-400 hover:underline"
+                  >
                     Privacy Policy
                   </a>
                 </label>
-                {formErrors.terms && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.terms}</p>}
+                {formErrors.terms && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {formErrors.terms}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -288,7 +330,11 @@ export default function RegisterPage() {
                 type="button"
                 className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  className="h-5 w-5 mr-2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                     fill="#4285F4"
@@ -327,5 +373,5 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

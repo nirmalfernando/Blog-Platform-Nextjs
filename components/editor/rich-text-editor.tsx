@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 import {
   Bold,
   Italic,
@@ -13,65 +13,71 @@ import {
   Quote,
   Heading1,
   Heading2,
-} from "lucide-react"
+} from "lucide-react";
 
 interface RichTextEditorProps {
-  initialValue?: string
-  onChange: (content: string) => void
+  initialValue?: string;
+  onChange: (content: string) => void;
 }
 
-export function RichTextEditor({ initialValue = "", onChange }: RichTextEditorProps) {
-  const [content, setContent] = useState(initialValue)
-  const editorRef = useRef<HTMLDivElement>(null)
-  const [showLinkInput, setShowLinkInput] = useState(false)
-  const [linkUrl, setLinkUrl] = useState("")
-  const [linkText, setLinkText] = useState("")
-  const [showImageInput, setShowImageInput] = useState(false)
-  const [imageUrl, setImageUrl] = useState("")
-  const [imageAlt, setImageAlt] = useState("")
+export function RichTextEditor({
+  initialValue = "",
+  onChange,
+}: RichTextEditorProps) {
+  const [content, setContent] = useState(initialValue);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
+  const [showImageInput, setShowImageInput] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageAlt, setImageAlt] = useState("");
 
   useEffect(() => {
     if (editorRef.current) {
-      editorRef.current.innerHTML = initialValue
+      editorRef.current.innerHTML = initialValue;
     }
-  }, [initialValue])
+  }, [initialValue]);
 
   const handleContentChange = () => {
     if (editorRef.current) {
-      const newContent = editorRef.current.innerHTML
-      setContent(newContent)
-      onChange(newContent)
+      const newContent = editorRef.current.innerHTML;
+      setContent(newContent);
+      onChange(newContent);
     }
-  }
+  };
 
   const execCommand = (command: string, value: string | boolean = false) => {
-    document.execCommand(command, false, value)
-    handleContentChange()
+    document.execCommand(command, false, value);
+    handleContentChange();
     if (editorRef.current) {
-      editorRef.current.focus()
+      editorRef.current.focus();
     }
-  }
+  };
 
   const handleInsertLink = () => {
     if (linkUrl && linkText) {
-      execCommand("insertHTML", `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a>`)
-      setShowLinkInput(false)
-      setLinkUrl("")
-      setLinkText("")
+      execCommand(
+        "insertHTML",
+        `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a>`
+      );
+      setShowLinkInput(false);
+      setLinkUrl("");
+      setLinkText("");
     }
-  }
+  };
 
   const handleInsertImage = () => {
     if (imageUrl) {
       execCommand(
         "insertHTML",
-        `<img src="${imageUrl}" alt="${imageAlt}" style="max-width: 100%; height: auto; margin: 10px 0;" />`,
-      )
-      setShowImageInput(false)
-      setImageUrl("")
-      setImageAlt("")
+        `<img src="${imageUrl}" alt="${imageAlt}" style="max-width: 100%; height: auto; margin: 10px 0;" />`
+      );
+      setShowImageInput(false);
+      setImageUrl("");
+      setImageAlt("");
     }
-  }
+  };
 
   return (
     <div className="border border-gray-300 dark:border-gray-700 rounded-md overflow-hidden">
@@ -243,5 +249,5 @@ export function RichTextEditor({ initialValue = "", onChange }: RichTextEditorPr
         onBlur={handleContentChange}
       ></div>
     </div>
-  )
+  );
 }

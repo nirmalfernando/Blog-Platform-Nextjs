@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Image from "next/image"
-import { Edit2, Camera } from "lucide-react"
+import { useState } from "react";
+import Image from "next/image";
+import { Edit2, Camera } from "lucide-react";
 
 // Placeholder data for the profile page
 const DUMMY_USER = {
@@ -17,56 +17,62 @@ const DUMMY_USER = {
   location: "San Francisco, CA",
   website: "https://janesmith.dev",
   role: "admin",
-}
+};
 
 export default function ProfilePage() {
-  const [isEditing, setIsEditing] = useState(false)
-  const [userData, setUserData] = useState(DUMMY_USER)
-  const [newAvatar, setNewAvatar] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false);
+  const [userData, setUserData] = useState(DUMMY_USER);
+  const [newAvatar, setNewAvatar] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setUserData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      const reader = new FileReader()
+      const file = e.target.files[0];
+      const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          setNewAvatar(event.target.result as string)
+          setNewAvatar(event.target.result as string);
         }
-      }
-      reader.readAsDataURL(file)
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Placeholder for saving user data
-    console.log("Saving user data:", userData)
+    console.log("Saving user data:", userData);
 
     if (newAvatar) {
       setUserData((prev) => ({
         ...prev,
         avatar: newAvatar,
-      }))
-      setNewAvatar(null)
+      }));
+      setNewAvatar(null);
     }
 
-    setIsEditing(false)
-  }
+    setIsEditing(false);
+  };
 
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto">
         <header className="mb-12">
-          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">My Profile</h1>
-          <p className="text-gray-600 dark:text-gray-300">Manage your account information and settings</p>
+          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
+            My Profile
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Manage your account information and settings
+          </p>
         </header>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -114,7 +120,10 @@ export default function ProfilePage() {
                 {isEditing ? (
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >
                         Name
                       </label>
                       <input
@@ -145,7 +154,10 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label
+                        htmlFor="bio"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >
                         Bio
                       </label>
                       <textarea
@@ -202,9 +214,9 @@ export default function ProfilePage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsEditing(false)
-                          setUserData(DUMMY_USER)
-                          setNewAvatar(null)
+                          setIsEditing(false);
+                          setUserData(DUMMY_USER);
+                          setNewAvatar(null);
                         }}
                         className="px-6 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
                       >
@@ -215,8 +227,12 @@ export default function ProfilePage() {
                 ) : (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{userData.name}</h2>
-                      <p className="text-gray-500 dark:text-gray-400">{userData.role}</p>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {userData.name}
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400">
+                        {userData.role}
+                      </p>
                     </div>
 
                     <div className="space-y-3">
@@ -275,7 +291,8 @@ export default function ProfilePage() {
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                           />
                         </svg>
-                        Joined {new Date(userData.joinedAt).toLocaleDateString()}
+                        Joined{" "}
+                        {new Date(userData.joinedAt).toLocaleDateString()}
                       </div>
                       {userData.website && (
                         <div className="flex items-center text-theme-purple-600 dark:text-theme-purple-400">
@@ -292,8 +309,12 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">Bio</h3>
-                      <p className="text-gray-700 dark:text-gray-300">{userData.bio}</p>
+                      <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">
+                        Bio
+                      </h3>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {userData.bio}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -304,8 +325,12 @@ export default function ProfilePage() {
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">My Posts</h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">You have written 8 blog posts.</p>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              My Posts
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              You have written 8 blog posts.
+            </p>
             <div className="flex space-x-4">
               <a
                 href="/blog?author=jane-smith"
@@ -324,7 +349,12 @@ export default function ProfilePage() {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
                 </svg>
                 Create New Post
               </a>
@@ -332,7 +362,9 @@ export default function ProfilePage() {
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Account Settings</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              Account Settings
+            </h2>
             <ul className="space-y-2">
               <li>
                 <a
@@ -371,5 +403,5 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

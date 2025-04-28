@@ -1,69 +1,70 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Edit2, Save, X, MoreHorizontal } from "lucide-react"
+import { useState } from "react";
+import { Edit2, Save, X, MoreHorizontal } from "lucide-react";
 
 interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-  createdAt: string
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: string;
 }
 
 interface UserTableProps {
-  users: User[]
+  users: User[];
 }
 
 export function UserTable({ users }: UserTableProps) {
-  const [editingUserId, setEditingUserId] = useState<string | null>(null)
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<Record<string, string>>(() => {
-    const roles: Record<string, string> = {}
+    const roles: Record<string, string> = {};
     users.forEach((user) => {
-      roles[user.id] = user.role
-    })
-    return roles
-  })
-  const [showDropdown, setShowDropdown] = useState<string | null>(null)
+      roles[user.id] = user.role;
+    });
+    return roles;
+  });
+  const [showDropdown, setShowDropdown] = useState<string | null>(null);
 
   const handleRoleChange = (userId: string, role: string) => {
     setUserRoles((prev) => ({
       ...prev,
       [userId]: role,
-    }))
-  }
+    }));
+  };
 
   const saveRole = (userId: string) => {
     // This would normally save the role to your backend
-    console.log("Saving role:", { userId, role: userRoles[userId] })
-    setEditingUserId(null)
-  }
+    console.log("Saving role:", { userId, role: userRoles[userId] });
+    setEditingUserId(null);
+  };
 
   const cancelEdit = (userId: string) => {
     // Reset to original role
-    const originalRole = users.find((user) => user.id === userId)?.role || "reader"
+    const originalRole =
+      users.find((user) => user.id === userId)?.role || "reader";
     setUserRoles((prev) => ({
       ...prev,
       [userId]: originalRole,
-    }))
-    setEditingUserId(null)
-  }
+    }));
+    setEditingUserId(null);
+  };
 
   const toggleDropdown = (userId: string) => {
-    setShowDropdown(showDropdown === userId ? null : userId)
-  }
+    setShowDropdown(showDropdown === userId ? null : userId);
+  };
 
   const handleAction = (action: string, userId: string) => {
-    console.log(`Performing ${action} on user ${userId}`)
-    setShowDropdown(null)
-  }
+    console.log(`Performing ${action} on user ${userId}`);
+    setShowDropdown(null);
+  };
 
   if (users.length === 0) {
     return (
       <div className="p-8 text-center text-gray-500 dark:text-gray-400">
         No users found. Try adjusting your search criteria.
       </div>
-    )
+    );
   }
 
   return (
@@ -105,12 +106,19 @@ export function UserTable({ users }: UserTableProps) {
         </thead>
         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
           {users.map((user) => (
-            <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+            <tr
+              key={user.id}
+              className="hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  {user.name}
+                </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {user.email}
+                </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 {editingUserId === user.id ? (
@@ -129,8 +137,8 @@ export function UserTable({ users }: UserTableProps) {
                       userRoles[user.id] === "admin"
                         ? "bg-theme-purple-100 dark:bg-theme-purple-900/30 text-theme-purple-800 dark:text-theme-purple-200"
                         : userRoles[user.id] === "editor"
-                          ? "bg-theme-purple-100 dark:bg-theme-purple-900/30 text-theme-purple-800 dark:text-theme-purple-200"
-                          : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200"
+                        ? "bg-theme-purple-100 dark:bg-theme-purple-900/30 text-theme-purple-800 dark:text-theme-purple-200"
+                        : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200"
                     }`}
                   >
                     {userRoles[user.id]}
@@ -171,8 +179,8 @@ export function UserTable({ users }: UserTableProps) {
                         <div className="py-1">
                           <button
                             onClick={() => {
-                              setEditingUserId(user.id)
-                              setShowDropdown(null)
+                              setEditingUserId(user.id);
+                              setShowDropdown(null);
                             }}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
@@ -202,5 +210,5 @@ export function UserTable({ users }: UserTableProps) {
         </tbody>
       </table>
     </div>
-  )
+  );
 }
