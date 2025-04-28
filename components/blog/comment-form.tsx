@@ -13,7 +13,7 @@ export function CommentForm({ postId }: CommentFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder for comment submission logic
+    // This would normally submit the comment to your backend
     console.log("Submitting comment:", { postId, comment });
     setComment("");
   };

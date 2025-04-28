@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CommentForm } from "@/components/blog/comment-form";
 import { CommentList } from "@/components/blog/comment-list";
 
-// Dummy data for a single post
+// This would normally be fetched from your database based on the slug
 const DUMMY_POST = {
   id: "1",
   title: "Getting Started with Next.js 14",
@@ -53,6 +53,7 @@ const DUMMY_COMMENTS = [
   },
 ];
 
+// This would be determined by your auth state
 const isLoggedIn = true;
 
 export default function BlogPost({ params }: { params: { slug: string } }) {

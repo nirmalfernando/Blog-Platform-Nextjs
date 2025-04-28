@@ -24,7 +24,7 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
   };
 
   const applyFilters = () => {
-    // Placeholder for filter application logic
+    // This would normally trigger a filter action
     console.log("Filtering by:", {
       selectedCategory,
       selectedAuthor,

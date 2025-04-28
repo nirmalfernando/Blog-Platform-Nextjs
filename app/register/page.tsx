@@ -75,7 +75,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // Placeholder for form submission logic for the registration process
+    // This would normally submit the registration data to your backend
     console.log("Registration data:", formData);
 
     // Redirect to login page or show success message

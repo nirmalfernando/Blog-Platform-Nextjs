@@ -4,7 +4,7 @@ import { SearchBar } from "@/components/blog/search-bar";
 import { FilterPanel } from "@/components/blog/filter-panel";
 import { Pagination } from "@/components/blog/pagination";
 
-//Dummy data for posts
+// This would normally be fetched from your database
 const DUMMY_POSTS = [
   {
     id: "1",
@@ -92,7 +92,7 @@ const DUMMY_POSTS = [
   },
 ];
 
-// Dummy Categories and tags for filtering
+// Categories and tags for filtering
 const CATEGORIES = ["All", "Web Development", "CSS", "TypeScript", "React"];
 const TAGS = [
   "Next.js",

@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -7,44 +8,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  EDITOR
-  READER
-}
-
 model User {
-  id            String      @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String      @unique
-  username      String?     @unique
-  password      String?
+  username      String?   @unique
+  email         String    @unique
+  emailVerified DateTime?
   image         String?
-  bio           String?     @db.Text
-  role          Role        @default(READER)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  password      String?
+  role          Role      @default(READER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
   posts         Post[]
   comments      Comment[]
   likes         Like[]
   savedPosts    SavedPost[]
-  accounts      Account[]
-  sessions      Session[]
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -68,76 +65,88 @@ model VerificationToken {
 }
 
 model Post {
-  id          String        @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  slug        String        @unique
-  content     String        @db.Text
-  published   Boolean       @default(false)
+  slug        String    @unique
+  content     String    @db.Text
+  published   Boolean   @default(false)
   imageUrl    String?
   authorId    String
   categoryId  String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  category    Category?     @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category    Category? @relation(fields: [categoryId], references: [id])
+  tags        TagsOnPosts[]
   comments    Comment[]
   likes       Like[]
   savedBy     SavedPost[]
-  tags        TagsOnPosts[]
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  postId    String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Like {
-  id        String   @id @default(cuid())
-  postId    String
-  userId    String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, userId])
-}
-
-model SavedPost {
-  id        String   @id @default(cuid())
-  postId    String
-  userId    String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, userId])
 }
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?  @db.Text
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
   posts       Post[]
 }
 
 model Tag {
-  id    String        @id @default(cuid())
-  name  String        @unique
-  posts TagsOnPosts[]
+  id          String    @id @default(cuid())
+  name        String    @unique
+  posts       TagsOnPosts[]
 }
 
 model TagsOnPosts {
-  id     String @id @default(cuid())
-  postId String
-  tagId  String
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  postId      String
+  tagId       String
+  assignedAt  DateTime  @default(now())
+  
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([postId, tagId])
+}
 
-  @@unique([postId, tagId])
+model Comment {
+  id          String    @id @default(cuid())
+  content     String    @db.Text
+  postId      String
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id          String    @id @default(cuid())
+  postId      String
+  userId      String
+  createdAt   DateTime  @default(now())
+
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId])
+}
+
+model SavedPost {
+  id          String    @id @default(cuid())
+  postId      String
+  userId      String
+  createdAt   DateTime  @default(now())
+
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId])
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  READER
 }

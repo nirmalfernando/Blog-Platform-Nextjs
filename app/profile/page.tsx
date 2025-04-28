@@ -6,7 +6,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Edit2, Camera } from "lucide-react";
 
-// Placeholder data for the profile page
+// This would normally be fetched from your backend
 const DUMMY_USER = {
   id: "1",
   name: "Jane Smith",
@@ -49,7 +49,7 @@ export default function ProfilePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder for saving user data
+    // This would normally save the user data to your backend
     console.log("Saving user data:", userData);
 
     if (newAvatar) {

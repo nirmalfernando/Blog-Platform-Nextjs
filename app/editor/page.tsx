@@ -7,7 +7,7 @@ import { ImageUpload } from "@/components/editor/image-upload";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { AlertCircle, Save } from "lucide-react";
 
-// Placeholders for categories
+// This would normally be fetched from your database for edit mode
 const DUMMY_CATEGORIES = [
   { id: "1", name: "Web Development" },
   { id: "2", name: "Mobile Development" },
@@ -103,7 +103,7 @@ export default function EditorPage() {
     setIsSubmitting(true);
 
     try {
-      // Placeholder for submission logic
+      // This would normally submit the post data to your backend
       console.log("Submitting post:", {
         ...formData,
         featuredImage,
@@ -113,8 +113,8 @@ export default function EditorPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Redirect to blog
-      // window.location.href = saveAsDraft ? `/blog/${slug}`;
+      // Redirect to blog or admin page after successful submission
+      // window.location.href = saveAsDraft ? "/admin" : `/blog/${slug}`;
     } catch (error) {
       console.error("Error submitting post:", error);
     } finally {

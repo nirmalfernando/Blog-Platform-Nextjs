@@ -20,13 +20,14 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
         pages.push(i);
       }
     } else {
+      // Always show first page
       pages.push(1);
 
       // Calculate start and end of page range
       let start = Math.max(2, currentPage - 1);
       let end = Math.min(totalPages - 1, currentPage + 1);
 
-      // Adjust based on current page
+      // Adjust if we're near the beginning or end
       if (currentPage <= 3) {
         end = 4;
       } else if (currentPage >= totalPages - 2) {
@@ -35,7 +36,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
 
       // Add ellipsis if needed
       if (start > 2) {
-        pages.push(-1);
+        pages.push(-1); // -1 represents ellipsis
       }
 
       // Add middle pages
@@ -45,7 +46,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
 
       // Add ellipsis if needed
       if (end < totalPages - 1) {
-        pages.push(-2);
+        pages.push(-2); // -2 represents ellipsis
       }
 
       // Always show last page

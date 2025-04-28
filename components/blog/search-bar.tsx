@@ -10,7 +10,7 @@ export function SearchBar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Search action logic placeholder
+    // This would normally trigger a search action
     console.log("Searching for:", query);
   };
 
