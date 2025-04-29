@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Edit2,
   Trash2,
@@ -14,16 +15,27 @@ import {
 interface Post {
   id: string;
   title: string;
-  author: string;
+  slug: string;
+  author: {
+    id: string;
+    name: string;
+    image?: string | null;
+  };
   status: string;
   createdAt: string;
 }
 
 interface BlogTableProps {
   posts: Post[];
+  onPublishToggle: (postId: string) => Promise<void>;
+  onDelete: (postId: string) => Promise<void>;
 }
 
-export function BlogTable({ posts }: BlogTableProps) {
+export function BlogTable({
+  posts,
+  onPublishToggle,
+  onDelete,
+}: BlogTableProps) {
   const [postStatuses, setPostStatuses] = useState<Record<string, string>>(
     () => {
       const statuses: Record<string, string> = {};
@@ -34,27 +46,38 @@ export function BlogTable({ posts }: BlogTableProps) {
     }
   );
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
-
-  const handleStatusChange = (postId: string, status: string) => {
-    // This would normally update the status in your backend
-    setPostStatuses((prev) => ({
-      ...prev,
-      [postId]: status,
-    }));
-  };
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
   const toggleDropdown = (postId: string) => {
     setShowDropdown(showDropdown === postId ? null : postId);
   };
 
-  const handleAction = (action: string, postId: string) => {
-    console.log(`Performing ${action} on post ${postId}`);
-    setShowDropdown(null);
+  const handlePublishToggle = async (postId: string) => {
+    setIsProcessing(postId);
+    try {
+      await onPublishToggle(postId);
+      // Update local state
+      setPostStatuses((prev) => ({
+        ...prev,
+        [postId]: prev[postId] === "published" ? "draft" : "published",
+      }));
+      setShowDropdown(null);
+    } catch (error) {
+      console.error("Error toggling publish status:", error);
+    } finally {
+      setIsProcessing(null);
+    }
+  };
 
-    if (action === "approve" && postStatuses[postId] === "pending") {
-      handleStatusChange(postId, "published");
-    } else if (action === "reject" && postStatuses[postId] === "pending") {
-      handleStatusChange(postId, "draft");
+  const handleDeletePost = async (postId: string) => {
+    setIsProcessing(postId);
+    try {
+      await onDelete(postId);
+      setShowDropdown(null);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    } finally {
+      setIsProcessing(null);
     }
   };
 
@@ -147,8 +170,17 @@ export function BlogTable({ posts }: BlogTableProps) {
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {post.author}
+                <div className="flex items-center">
+                  {post.author.image && (
+                    <img
+                      src={post.author.image || "/placeholder.svg"}
+                      alt={post.author.name}
+                      className="h-6 w-6 rounded-full mr-2"
+                    />
+                  )}
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {post.author.name}
+                  </div>
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -162,50 +194,56 @@ export function BlogTable({ posts }: BlogTableProps) {
                   <button
                     onClick={() => toggleDropdown(post.id)}
                     className="text-gray-500 dark:text-gray-400 hover:text-theme-purple-700 dark:hover:text-theme-purple-400"
+                    disabled={isProcessing === post.id}
                   >
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
+
                   {showDropdown === post.id && (
                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
                       <div className="py-1">
-                        <a
-                          href={`/editor?id=${post.id}`}
+                        <Link
+                          href={`/editor?id=${post.slug}`}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <Edit2 className="h-4 w-4 mr-2" />
                           Edit
-                        </a>
-                        <a
-                          href={`/blog/${post.id}`}
+                        </Link>
+                        <Link
+                          href={`/blog/${post.slug}`}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View
-                        </a>
-                        {postStatuses[post.id] === "pending" && (
-                          <>
-                            <button
-                              onClick={() => handleAction("approve", post.id)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleAction("reject", post.id)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-yellow-600 dark:text-yellow-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Reject
-                            </button>
-                          </>
-                        )}
+                        </Link>
                         <button
-                          onClick={() => handleAction("delete", post.id)}
+                          onClick={() => handlePublishToggle(post.id)}
+                          className="flex items-center w-full px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          disabled={isProcessing === post.id}
+                        >
+                          {postStatuses[post.id] === "published" ? (
+                            <>
+                              <XCircle className="h-4 w-4 mr-2" />
+                              {isProcessing === post.id
+                                ? "Unpublishing..."
+                                : "Unpublish"}
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              {isProcessing === post.id
+                                ? "Publishing..."
+                                : "Publish"}
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeletePost(post.id)}
                           className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          disabled={isProcessing === post.id}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
+                          {isProcessing === post.id ? "Deleting..." : "Delete"}
                         </button>
                       </div>
                     </div>

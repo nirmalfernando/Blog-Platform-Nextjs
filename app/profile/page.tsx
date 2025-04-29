@@ -2,27 +2,48 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Edit2, Camera } from "lucide-react";
-
-// This would normally be fetched from your backend
-const DUMMY_USER = {
-  id: "1",
-  name: "Jane Smith",
-  email: "jane@example.com",
-  bio: "Full-stack developer specializing in React and Next.js",
-  avatar: "/placeholder.svg?height=200&width=200",
-  joinedAt: "2023-01-15",
-  location: "San Francisco, CA",
-  website: "https://janesmith.dev",
-  role: "admin",
-};
+import Link from "next/link";
+import { Edit2, Camera, BookOpen, Plus } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { uploadAPI } from "@/lib/api";
 
 export default function ProfilePage() {
+  const { user, status } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [userData, setUserData] = useState(DUMMY_USER);
+  const [userData, setUserData] = useState({
+    id: "",
+    name: "",
+    email: "",
+    bio: "",
+    avatar: "/placeholder.svg?height=200&width=200",
+    joinedAt: new Date().toISOString(),
+    location: "",
+    website: "",
+    role: "",
+  });
   const [newAvatar, setNewAvatar] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (status === "authenticated" && user) {
+      setUserData({
+        id: user.id || "",
+        name: user.name || "",
+        email: user.email || "",
+        bio: user.bio || "",
+        avatar: user.image || "/placeholder.svg?height=200&width=200",
+        joinedAt: user.createdAt || new Date().toISOString(),
+        location: user.location || "",
+        website: user.website || "",
+        role: user.role || "reader",
+      });
+      setIsLoading(false);
+    } else if (status === "unauthenticated") {
+      window.location.href = "/login?callbackUrl=/profile";
+    }
+  }, [user, status]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -34,34 +55,80 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setNewAvatar(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+
+      try {
+        // Upload to Cloudinary
+        const result = await uploadAPI.uploadFile(file);
+        setNewAvatar(result.url);
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        alert("Failed to upload image. Please try again.");
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // This would normally save the user data to your backend
-    console.log("Saving user data:", userData);
+    setIsLoading(true);
 
-    if (newAvatar) {
-      setUserData((prev) => ({
-        ...prev,
-        avatar: newAvatar,
-      }));
-      setNewAvatar(null);
+    try {
+      // This would normally save the user data to your backend
+      const updatedUserData = {
+        ...userData,
+        ...(newAvatar && { avatar: newAvatar }),
+      };
+
+      // API call to update user profile would go here
+      console.log("Saving user data:", updatedUserData);
+
+      if (newAvatar) {
+        setUserData((prev) => ({
+          ...prev,
+          avatar: newAvatar,
+        }));
+        setNewAvatar(null);
+      }
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsEditing(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded mb-8"></div>
+            <div className="flex flex-col sm:flex-row gap-8">
+              <div className="flex flex-col items-center">
+                <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 mb-4"></div>
+                <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+              <div className="flex-1 space-y-6">
+                <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isAdminOrEditor =
+    userData.role === "admin" || userData.role === "editor";
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -215,7 +282,6 @@ export default function ProfilePage() {
                         type="button"
                         onClick={() => {
                           setIsEditing(false);
-                          setUserData(DUMMY_USER);
                           setNewAvatar(null);
                         }}
                         className="px-6 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
@@ -230,7 +296,7 @@ export default function ProfilePage() {
                       <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                         {userData.name}
                       </h2>
-                      <p className="text-gray-500 dark:text-gray-400">
+                      <p className="text-gray-500 dark:text-gray-400 capitalize">
                         {userData.role}
                       </p>
                     </div>
@@ -253,29 +319,31 @@ export default function ProfilePage() {
                         </svg>
                         {userData.email}
                       </div>
-                      <div className="flex items-center text-gray-700 dark:text-gray-300">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 mr-2 text-gray-500 dark:text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                        {userData.location}
-                      </div>
+                      {userData.location && (
+                        <div className="flex items-center text-gray-700 dark:text-gray-300">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 mr-2 text-gray-500 dark:text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                          {userData.location}
+                        </div>
+                      )}
                       <div className="flex items-center text-gray-700 dark:text-gray-300">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -308,14 +376,16 @@ export default function ProfilePage() {
                       )}
                     </div>
 
-                    <div>
-                      <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">
-                        Bio
-                      </h3>
-                      <p className="text-gray-700 dark:text-gray-300">
-                        {userData.bio}
-                      </p>
-                    </div>
+                    {userData.bio && (
+                      <div>
+                        <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">
+                          Bio
+                        </h3>
+                        <p className="text-gray-700 dark:text-gray-300">
+                          {userData.bio}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -329,35 +399,35 @@ export default function ProfilePage() {
               My Posts
             </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              You have written 8 blog posts.
+              {isAdminOrEditor
+                ? "Manage your blog posts and create new content."
+                : "View your reading activity and saved posts."}
             </p>
             <div className="flex space-x-4">
-              <a
-                href="/blog?author=jane-smith"
+              <Link
+                href="/profile/posts"
                 className="text-theme-purple-600 dark:text-theme-purple-400 hover:text-theme-purple-800 dark:hover:text-theme-purple-300 font-medium"
               >
                 View all my posts →
-              </a>
-              <a
-                href="/editor"
-                className="inline-flex items-center px-4 py-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white font-medium rounded-md transition-colors duration-200"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              </Link>
+
+              {isAdminOrEditor ? (
+                <Link
+                  href="/editor"
+                  className="inline-flex items-center px-4 py-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white font-medium rounded-md transition-colors duration-200"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                Create New Post
-              </a>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New Post
+                </Link>
+              ) : (
+                <Link
+                  href="/profile/saved"
+                  className="inline-flex items-center px-4 py-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white font-medium rounded-md transition-colors duration-200"
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  See My Saved Posts
+                </Link>
+              )}
             </div>
           </div>
 

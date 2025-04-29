@@ -96,7 +96,19 @@ export const likeAPI = {
 // Saved Posts API functions
 export const savedPostsAPI = {
   getAllSavedPosts: async () => {
-    return fetchAPI("/api/saved-posts");
+    try {
+      const response = await fetch("/api/saved-posts");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch saved posts");
+      }
+
+      return { posts: Array.isArray(data.posts) ? data.posts : [] };
+    } catch (error) {
+      console.error("Error fetching saved posts:", error);
+      return { posts: [] };
+    }
   },
 
   toggleSavePost: async (postId: string) => {
@@ -131,8 +143,19 @@ export const tagAPI = {
 // User management API functions (admin only)
 export const adminAPI = {
   getAllUsers: async (params: Record<string, string> = {}) => {
-    const queryParams = new URLSearchParams(params);
-    return fetchAPI(`/api/admin/users?${queryParams}`);
+    try {
+      const response = await fetch("/api/admin/users");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch users");
+      }
+
+      return Array.isArray(data.users) ? data.users : [];
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return [];
+    }
   },
 
   getUserById: async (id: string) => {
@@ -153,8 +176,19 @@ export const adminAPI = {
   },
 
   getAllAdminPosts: async (params: Record<string, string> = {}) => {
-    const queryParams = new URLSearchParams(params);
-    return fetchAPI(`/api/admin/posts?${queryParams}`);
+    try {
+      const response = await fetch("/api/admin/posts");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch posts");
+      }
+
+      return { posts: Array.isArray(data.posts) ? data.posts : [] };
+    } catch (error) {
+      console.error("Error fetching admin posts:", error);
+      return { posts: [] };
+    }
   },
 
   togglePostPublish: async (id: string) => {

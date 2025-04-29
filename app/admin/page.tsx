@@ -1,122 +1,190 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserTable } from "@/components/admin/user-table";
 import { BlogTable } from "@/components/admin/blog-table";
 import { Search, Filter, RefreshCw } from "lucide-react";
-
-// This would normally be fetched from your database
-const DUMMY_USERS = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    role: "admin",
-    createdAt: "2023-01-15",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "editor",
-    createdAt: "2023-02-10",
-  },
-  {
-    id: "3",
-    name: "Bob Johnson",
-    email: "bob@example.com",
-    role: "reader",
-    createdAt: "2023-03-05",
-  },
-  {
-    id: "4",
-    name: "Sarah Williams",
-    email: "sarah@example.com",
-    role: "editor",
-    createdAt: "2023-03-20",
-  },
-  {
-    id: "5",
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    role: "reader",
-    createdAt: "2023-04-01",
-  },
-];
-
-// This would normally be fetched from your database
-const DUMMY_POSTS = [
-  {
-    id: "1",
-    title: "Getting Started with Next.js 14",
-    author: "Jane Smith",
-    status: "published",
-    createdAt: "2023-04-15",
-  },
-  {
-    id: "2",
-    title: "Mastering Tailwind CSS",
-    author: "John Doe",
-    status: "published",
-    createdAt: "2023-04-10",
-  },
-  {
-    id: "3",
-    title: "TypeScript Tips and Tricks",
-    author: "Alex Johnson",
-    status: "draft",
-    createdAt: "2023-04-05",
-  },
-  {
-    id: "4",
-    title: "Building a Blog with Next.js",
-    author: "Sarah Williams",
-    status: "pending",
-    createdAt: "2023-03-28",
-  },
-  {
-    id: "5",
-    title: "Introduction to Server Components",
-    author: "Michael Brown",
-    status: "pending",
-    createdAt: "2023-03-20",
-  },
-  {
-    id: "6",
-    title: "State Management in React",
-    author: "Emily Chen",
-    status: "draft",
-    createdAt: "2023-03-15",
-  },
-];
+import { adminAPI } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 
 export default function AdminPage() {
+  const { user, status, isAdmin } = useAuth();
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState<"users" | "posts">("users");
+  const [users, setUsers] = useState<any[]>([]);
+  const [posts, setPosts] = useState([]);
   const [userSearch, setUserSearch] = useState("");
   const [postSearch, setPostSearch] = useState("");
   const [postStatusFilter, setPostStatusFilter] = useState<string>("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredUsers = DUMMY_USERS.filter(
+  useEffect(() => {
+    // Redirect if not admin
+    if (status === "unauthenticated") {
+      router.push("/login?callbackUrl=/admin");
+      return;
+    }
+
+    if (status === "authenticated" && !isAdmin) {
+      router.push("/");
+      return;
+    }
+
+    fetchData();
+  }, [status, isAdmin, router]);
+
+  const fetchData = async () => {
+    if (!isAdmin) return;
+
+    setIsRefreshing(true);
+    setError(null);
+
+    try {
+      // Fetch users
+      const usersResponse = await adminAPI.getAllUsers();
+      setUsers(Array.isArray(usersResponse) ? usersResponse : []);
+
+      // Fetch posts
+      const postsResponse = await adminAPI.getAllAdminPosts();
+      setPosts(postsResponse.posts);
+    } catch (err: any) {
+      console.error("Error fetching admin data:", err);
+      setError(err.message || "Failed to fetch data");
+    } finally {
+      setIsRefreshing(false);
+      setIsLoading(false);
+    }
+  };
+
+  const handleUserRoleUpdate = async (userId: string, role: string) => {
+    try {
+      await adminAPI.updateUserRole(userId, role);
+      // Update local state
+      setUsers(
+        users.map((user) => (user.id === userId ? { ...user, role } : user))
+      );
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      alert("Failed to update user role");
+    }
+  };
+
+  const handleUserDelete = async (userId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this user? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await adminAPI.deleteUser(userId);
+      // Update local state
+      setUsers(users.filter((user) => user.id !== userId));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("Failed to delete user");
+    }
+  };
+
+  const handlePostPublish = async (postId: string) => {
+    try {
+      await adminAPI.togglePostPublish(postId);
+      // Update local state
+      setPosts(
+        posts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                status: post.status === "published" ? "draft" : "published",
+              }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling post publish status:", error);
+      alert("Failed to update post status");
+    }
+  };
+
+  const handlePostDelete = async (postId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this post? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await adminAPI.deletePost(postId);
+      // Update local state
+      setPosts(posts.filter((post) => post.id !== postId));
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("Failed to delete post");
+    }
+  };
+
+  const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(userSearch.toLowerCase()) ||
       user.email.toLowerCase().includes(userSearch.toLowerCase())
   );
 
-  const filteredPosts = DUMMY_POSTS.filter(
+  const filteredPosts = posts.filter(
     (post) =>
       (post.title.toLowerCase().includes(postSearch.toLowerCase()) ||
-        post.author.toLowerCase().includes(postSearch.toLowerCase())) &&
+        post.author.name.toLowerCase().includes(postSearch.toLowerCase())) &&
       (postStatusFilter === "all" || post.status === postStatusFilter)
   );
 
-  const refreshData = () => {
-    setIsRefreshing(true);
-    // This would normally fetch fresh data from your backend
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1000);
-  };
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 md:mb-0">
+            Admin Dashboard
+          </h1>
+          <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
+          <div className="animate-pulse p-8">
+            <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded mb-6"></div>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 bg-gray-200 dark:bg-gray-700 rounded"
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+          <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>
+          <button
+            onClick={fetchData}
+            className="px-4 py-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white font-medium rounded-md"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -125,7 +193,7 @@ export default function AdminPage() {
           Admin Dashboard
         </h1>
         <button
-          onClick={refreshData}
+          onClick={fetchData}
           className="flex items-center px-4 py-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white font-medium rounded-md transition-colors duration-200"
         >
           <RefreshCw
@@ -175,7 +243,11 @@ export default function AdminPage() {
                 />
               </div>
             </div>
-            <UserTable users={filteredUsers} />
+            <UserTable
+              users={filteredUsers}
+              onRoleChange={handleUserRoleUpdate}
+              onDelete={handleUserDelete}
+            />
           </div>
         )}
 
@@ -212,7 +284,11 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
-            <BlogTable posts={filteredPosts} />
+            <BlogTable
+              posts={filteredPosts}
+              onPublishToggle={handlePostPublish}
+              onDelete={handlePostDelete}
+            />
           </div>
         )}
       </div>

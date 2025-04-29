@@ -55,6 +55,7 @@ export default function BlogPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedAuthor, setSelectedAuthor] = useState("All");
 
   useEffect(() => {
     async function fetchData() {
@@ -79,6 +80,10 @@ export default function BlogPage() {
         if (selectedTags.length > 0) {
           // We can only filter by one tag at a time in the API
           params.tag = selectedTags[0];
+        }
+
+        if (selectedAuthor !== "All") {
+          params.author = selectedAuthor;
         }
 
         const postsResponse = await postAPI.getAllPosts(params);
@@ -108,7 +113,13 @@ export default function BlogPage() {
     }
 
     fetchData();
-  }, [currentPage, searchQuery, selectedCategory, selectedTags]);
+  }, [
+    currentPage,
+    searchQuery,
+    selectedCategory,
+    selectedTags,
+    selectedAuthor,
+  ]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -126,6 +137,11 @@ export default function BlogPage() {
     } else {
       setSelectedTags([...selectedTags, tag]);
     }
+    setCurrentPage(1);
+  };
+
+  const handleAuthorChange = (author: string) => {
+    setSelectedAuthor(author);
     setCurrentPage(1);
   };
 
@@ -152,8 +168,10 @@ export default function BlogPage() {
               authors={authors}
               onCategoryChange={handleCategoryChange}
               onTagToggle={handleTagToggle}
+              onAuthorChange={handleAuthorChange}
               selectedCategory={selectedCategory}
               selectedTags={selectedTags}
+              selectedAuthor={selectedAuthor}
             />
           </div>
         </aside>
@@ -215,6 +233,7 @@ export default function BlogPage() {
                   setSearchQuery("");
                   setSelectedCategory("All");
                   setSelectedTags([]);
+                  setSelectedAuthor("All");
                   setCurrentPage(1);
                 }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-theme-purple-600 hover:bg-theme-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-theme-purple-500"
@@ -229,6 +248,16 @@ export default function BlogPage() {
                   key={post.id}
                   className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
                 >
+                  {post.imageUrl && (
+                    <div className="relative h-48 w-full">
+                      <Image
+                        src={post.imageUrl || "/placeholder.svg"}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="p-6">
                     <div className="flex items-center mb-3">
                       <span className="text-xs font-medium px-2.5 py-0.5 rounded bg-theme-purple-100 text-theme-purple-800 dark:bg-theme-purple-900/50 dark:text-theme-purple-300">

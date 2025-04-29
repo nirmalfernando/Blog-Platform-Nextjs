@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit2, Save, X, MoreHorizontal } from "lucide-react";
+import { Edit2, Save, X, MoreHorizontal, Trash2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -9,13 +9,16 @@ interface User {
   email: string;
   role: string;
   createdAt: string;
+  image?: string | null;
 }
 
 interface UserTableProps {
   users: User[];
+  onRoleChange: (userId: string, role: string) => Promise<void>;
+  onDelete: (userId: string) => Promise<void>;
 }
 
-export function UserTable({ users }: UserTableProps) {
+export function UserTable({ users, onRoleChange, onDelete }: UserTableProps) {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<Record<string, string>>(() => {
     const roles: Record<string, string> = {};
@@ -25,6 +28,7 @@ export function UserTable({ users }: UserTableProps) {
     return roles;
   });
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
   const handleRoleChange = (userId: string, role: string) => {
     setUserRoles((prev) => ({
@@ -33,10 +37,16 @@ export function UserTable({ users }: UserTableProps) {
     }));
   };
 
-  const saveRole = (userId: string) => {
-    // This would normally save the role to your backend
-    console.log("Saving role:", { userId, role: userRoles[userId] });
-    setEditingUserId(null);
+  const saveRole = async (userId: string) => {
+    setIsProcessing(userId);
+    try {
+      await onRoleChange(userId, userRoles[userId]);
+      setEditingUserId(null);
+    } catch (error) {
+      console.error("Error saving role:", error);
+    } finally {
+      setIsProcessing(null);
+    }
   };
 
   const cancelEdit = (userId: string) => {
@@ -54,9 +64,16 @@ export function UserTable({ users }: UserTableProps) {
     setShowDropdown(showDropdown === userId ? null : userId);
   };
 
-  const handleAction = (action: string, userId: string) => {
-    console.log(`Performing ${action} on user ${userId}`);
-    setShowDropdown(null);
+  const handleDeleteUser = async (userId: string) => {
+    setIsProcessing(userId);
+    try {
+      await onDelete(userId);
+      setShowDropdown(null);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    } finally {
+      setIsProcessing(null);
+    }
   };
 
   if (users.length === 0) {
@@ -111,8 +128,17 @@ export function UserTable({ users }: UserTableProps) {
               className="hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                  {user.name}
+                <div className="flex items-center">
+                  {user.image && (
+                    <img
+                      src={user.image || "/placeholder.svg"}
+                      alt={user.name}
+                      className="h-8 w-8 rounded-full mr-3"
+                    />
+                  )}
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    {user.name}
+                  </div>
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -126,10 +152,11 @@ export function UserTable({ users }: UserTableProps) {
                     value={userRoles[user.id]}
                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
                     className="text-sm rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-theme-purple-500 focus:border-theme-purple-500"
+                    disabled={isProcessing === user.id}
                   >
-                    <option value="admin">Admin</option>
-                    <option value="editor">Editor</option>
-                    <option value="reader">Reader</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="EDITOR">Editor</option>
+                    <option value="READER">Reader</option>
                   </select>
                 ) : (
                   <span
@@ -155,13 +182,19 @@ export function UserTable({ users }: UserTableProps) {
                       onClick={() => saveRole(user.id)}
                       className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
                       title="Save"
+                      disabled={isProcessing === user.id}
                     >
-                      <Save className="h-4 w-4" />
+                      <Save
+                        className={`h-4 w-4 ${
+                          isProcessing === user.id ? "animate-spin" : ""
+                        }`}
+                      />
                     </button>
                     <button
                       onClick={() => cancelEdit(user.id)}
                       className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                       title="Cancel"
+                      disabled={isProcessing === user.id}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -171,6 +204,7 @@ export function UserTable({ users }: UserTableProps) {
                     <button
                       onClick={() => toggleDropdown(user.id)}
                       className="text-gray-500 dark:text-gray-400 hover:text-theme-purple-700 dark:hover:text-theme-purple-400"
+                      disabled={isProcessing === user.id}
                     >
                       <MoreHorizontal className="h-5 w-5" />
                     </button>
@@ -188,16 +222,14 @@ export function UserTable({ users }: UserTableProps) {
                             Edit Role
                           </button>
                           <button
-                            onClick={() => handleAction("view", user.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            View Details
-                          </button>
-                          <button
-                            onClick={() => handleAction("delete", user.id)}
+                            onClick={() => handleDeleteUser(user.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            disabled={isProcessing === user.id}
                           >
-                            Delete User
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {isProcessing === user.id
+                              ? "Deleting..."
+                              : "Delete User"}
                           </button>
                         </div>
                       </div>
