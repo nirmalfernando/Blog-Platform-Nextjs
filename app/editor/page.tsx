@@ -2,31 +2,70 @@
 
 import type React from "react";
 
-import { useState } from "react";
-import { ImageUpload } from "@/components/editor/image-upload";
-import { RichTextEditor } from "@/components/editor/rich-text-editor";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, Save } from "lucide-react";
-
-// This would normally be fetched from your database for edit mode
-const DUMMY_CATEGORIES = [
-  { id: "1", name: "Web Development" },
-  { id: "2", name: "Mobile Development" },
-  { id: "3", name: "DevOps" },
-  { id: "4", name: "Data Science" },
-  { id: "5", name: "Design" },
-];
+import { TipTapEditor } from "@/components/editor/tiptap-editor";
+import { ImageUpload } from "@/components/editor/image-upload";
+import { postAPI, categoryAPI, uploadAPI } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function EditorPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const postId = searchParams.get("id");
+  const { user, status } = useAuth();
+
   const [formData, setFormData] = useState({
     title: "",
-    category: "",
-    tags: "",
     content: "",
+    excerpt: "",
+    categoryId: "",
+    tags: "",
   });
   const [featuredImage, setFeaturedImage] = useState<string | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isDraft, setIsDraft] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const categoriesData = await categoryAPI.getAllCategories();
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    }
+
+    async function fetchPostData() {
+      if (postId) {
+        setIsEditMode(true);
+        try {
+          const post = await postAPI.getPostBySlug(postId);
+          setFormData({
+            title: post.title,
+            content: post.content,
+            excerpt: post.excerpt || "",
+            categoryId: post.category?.id || "",
+            tags: post.tags.map((t: any) => t.tag.name).join(", "),
+          });
+          setFeaturedImage(post.imageUrl);
+          setIsDraft(!post.published);
+        } catch (error) {
+          console.error("Error fetching post:", error);
+          router.push("/editor");
+        }
+      }
+      setIsLoading(false);
+    }
+
+    fetchCategories();
+    fetchPostData();
+  }, [postId, router]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -63,10 +102,31 @@ export default function EditorPage() {
         return newErrors;
       });
     }
+
+    // Auto-generate excerpt if it's empty
+    if (!formData.excerpt.trim()) {
+      const textContent = content.replace(/<[^>]+>/g, "");
+      const excerpt =
+        textContent.substring(0, 150) + (textContent.length > 150 ? "..." : "");
+      setFormData((prev) => ({
+        ...prev,
+        excerpt,
+      }));
+    }
   };
 
-  const handleImageChange = (imageUrl: string | null) => {
-    setFeaturedImage(imageUrl);
+  const handleImageChange = async (file: File | null) => {
+    if (!file) {
+      setFeaturedImage(null);
+      return;
+    }
+
+    try {
+      const result = await uploadAPI.uploadFile(file);
+      setFeaturedImage(result.url);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
   };
 
   const validateForm = () => {
@@ -76,12 +136,12 @@ export default function EditorPage() {
       errors.title = "Title is required";
     }
 
-    if (!formData.category) {
-      errors.category = "Category is required";
-    }
-
     if (!formData.content.trim()) {
       errors.content = "Content is required";
+    }
+
+    if (!formData.excerpt.trim()) {
+      errors.excerpt = "Excerpt is required";
     }
 
     return errors;
@@ -103,30 +163,71 @@ export default function EditorPage() {
     setIsSubmitting(true);
 
     try {
-      // This would normally submit the post data to your backend
-      console.log("Submitting post:", {
-        ...formData,
-        featuredImage,
-        status: saveAsDraft ? "draft" : "published",
-      });
+      const tagsArray = formData.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const postData = {
+        title: formData.title,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        imageUrl: featuredImage,
+        categoryId: formData.categoryId || null,
+        tags: tagsArray,
+        published: !saveAsDraft,
+      };
 
-      // Redirect to blog or admin page after successful submission
-      // window.location.href = saveAsDraft ? "/admin" : `/blog/${slug}`;
-    } catch (error) {
+      let result;
+      if (isEditMode) {
+        result = await postAPI.updatePost(postId as string, postData);
+      } else {
+        result = await postAPI.createPost(postData);
+      }
+
+      // Redirect to the post or admin page
+      router.push(saveAsDraft ? "/profile/posts" : `/blog/${result.slug}`);
+    } catch (error: any) {
       console.error("Error submitting post:", error);
+      alert(`Error: ${error.message || "Failed to save post"}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (status === "loading" || isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded mb-8"></div>
+            <div className="space-y-6">
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="flex justify-end space-x-4">
+                <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    router.push("/login?callbackUrl=/editor");
+    return null;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
-          Create New Post
+          {isEditMode ? "Edit Post" : "Create New Post"}
         </h1>
 
         <form className="space-y-6" onSubmit={(e) => handleSubmit(e, false)}>
@@ -159,6 +260,35 @@ export default function EditorPage() {
             )}
           </div>
 
+          {/* Excerpt */}
+          <div>
+            <label
+              htmlFor="excerpt"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Excerpt (Short summary)
+            </label>
+            <textarea
+              id="excerpt"
+              name="excerpt"
+              value={formData.excerpt}
+              onChange={handleChange}
+              rows={2}
+              className={`w-full px-3 py-2 border ${
+                formErrors.excerpt
+                  ? "border-red-500"
+                  : "border-gray-300 dark:border-gray-700"
+              } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
+              placeholder="Brief description of your post (will be auto-generated if left empty)"
+            />
+            {formErrors.excerpt && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                {formErrors.excerpt}
+              </p>
+            )}
+          </div>
+
           {/* Category */}
           <div>
             <label
@@ -168,29 +298,19 @@ export default function EditorPage() {
               Category
             </label>
             <select
-              id="category"
-              name="category"
-              value={formData.category}
+              id="categoryId"
+              name="categoryId"
+              value={formData.categoryId}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border ${
-                formErrors.category
-                  ? "border-red-500"
-                  : "border-gray-300 dark:border-gray-700"
-              } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
               <option value="">Select a category</option>
-              {DUMMY_CATEGORIES.map((category) => (
+              {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
             </select>
-            {formErrors.category && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                {formErrors.category}
-              </p>
-            )}
           </div>
 
           {/* Tags */}
@@ -213,7 +333,10 @@ export default function EditorPage() {
           </div>
 
           {/* Featured Image */}
-          <ImageUpload onImageChange={handleImageChange} />
+          <ImageUpload
+            onImageChange={handleImageChange}
+            initialImage={featuredImage}
+          />
 
           {/* Content */}
           <div>
@@ -223,9 +346,10 @@ export default function EditorPage() {
             >
               Content
             </label>
-            <RichTextEditor
-              initialValue={formData.content}
+            <TipTapEditor
+              content={formData.content}
               onChange={handleContentChange}
+              placeholder="Write your post content here..."
             />
             {formErrors.content && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">

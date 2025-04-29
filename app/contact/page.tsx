@@ -31,8 +31,10 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // This would normally submit the form data to your backend
     console.log("Form submitted:", formData);
 
+    // Simulate form submission
     setTimeout(() => {
       setFormStatus("success");
       setFormData({
@@ -42,6 +44,7 @@ export default function ContactPage() {
         message: "",
       });
 
+      // Reset form status after 5 seconds
       setTimeout(() => {
         setFormStatus(null);
       }, 5000);

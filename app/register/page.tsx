@@ -1,14 +1,16 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { authAPI } from "@/lib/api";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -18,6 +20,10 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -39,8 +45,8 @@ export default function RegisterPage() {
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
-    if (!formData.username.trim()) {
-      errors.username = "Username is required";
+    if (!formData.name.trim()) {
+      errors.name = "Name is required";
     }
 
     if (!formData.email.trim()) {
@@ -66,8 +72,9 @@ export default function RegisterPage() {
     return errors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError(null);
 
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
@@ -75,10 +82,38 @@ export default function RegisterPage() {
       return;
     }
 
-    // This would normally submit the registration data to your backend
-    console.log("Registration data:", formData);
+    setIsSubmitting(true);
 
-    // Redirect to login page or show success message
+    try {
+      // Register user
+      await authAPI.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Login the user
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setServerError(
+          "Registration successful, but failed to log in. Please try logging in manually."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Redirect to home page after successful registration and login
+      router.push("/");
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      setServerError(error.message || "Failed to register. Please try again.");
+      setIsSubmitting(false);
+    }
   };
 
   const getPasswordStrength = () => {
@@ -93,6 +128,11 @@ export default function RegisterPage() {
 
     const labels = ["Weak", "Fair", "Good", "Strong"];
     return { strength, label: labels[strength - 1] || "" };
+  };
+
+  const handleOAuthSignIn = (provider: string) => {
+    setIsSubmitting(true);
+    signIn(provider, { callbackUrl: "/" });
   };
 
   const passwordStrength = getPasswordStrength();
@@ -116,26 +156,33 @@ export default function RegisterPage() {
         </div>
 
         <div className="mt-8">
+          {serverError && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-md text-sm">
+              {serverError}
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
-                htmlFor="username"
+                htmlFor="name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                Username
+                Full Name
               </label>
               <input
                 type="text"
-                id="username"
-                name="username"
-                value={formData.username}
+                id="name"
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                placeholder="Choose a username"
+                placeholder="John Doe"
+                disabled={isSubmitting}
               />
-              {formErrors.username && (
+              {formErrors.name && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {formErrors.username}
+                  {formErrors.name}
                 </p>
               )}
             </div>
@@ -155,6 +202,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="you@example.com"
+                disabled={isSubmitting}
               />
               {formErrors.email && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -179,6 +227,7 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   placeholder="Create a password"
+                  disabled={isSubmitting}
                 />
                 <button
                   type="button"
@@ -244,6 +293,7 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   placeholder="Confirm your password"
+                  disabled={isSubmitting}
                 />
                 <button
                   type="button"
@@ -273,6 +323,7 @@ export default function RegisterPage() {
                   checked={agreedToTerms}
                   onChange={() => setAgreedToTerms(!agreedToTerms)}
                   className="h-4 w-4 text-theme-purple-600 focus:ring-theme-purple-500 border-gray-300 rounded"
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="ml-3 text-sm">
@@ -306,9 +357,10 @@ export default function RegisterPage() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-theme-purple-600 hover:bg-theme-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-theme-purple-500"
+                disabled={isSubmitting}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-theme-purple-600 hover:bg-theme-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-theme-purple-500 disabled:opacity-50"
               >
-                Create Account
+                {isSubmitting ? "Creating Account..." : "Create Account"}
               </button>
             </div>
           </form>
@@ -328,7 +380,9 @@ export default function RegisterPage() {
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                onClick={() => handleOAuthSignIn("google")}
+                disabled={isSubmitting}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 <svg
                   className="h-5 w-5 mr-2"
@@ -356,7 +410,9 @@ export default function RegisterPage() {
               </button>
               <button
                 type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                onClick={() => handleOAuthSignIn("github")}
+                disabled={isSubmitting}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 <svg
                   className="h-5 w-5 mr-2"

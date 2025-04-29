@@ -6,19 +6,7 @@ interface MetadataProps {
   description: string;
   image?: string;
   url?: string;
-  type?:
-    | "profile"
-    | "website"
-    | "article"
-    | "book"
-    | "music.song"
-    | "music.album"
-    | "music.playlist"
-    | "music.radio_station"
-    | "video.movie"
-    | "video.episode"
-    | "video.tv_show"
-    | "video.other";
+  type?: string;
 }
 
 export function constructMetadata({

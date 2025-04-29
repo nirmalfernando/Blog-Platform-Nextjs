@@ -1,14 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
-export function Pagination({ currentPage, totalPages }: PaginationProps) {
+export function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationProps) {
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pages = [];
@@ -64,20 +68,20 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
     <nav className="flex justify-center" aria-label="Pagination">
       <ul className="flex items-center space-x-1">
         <li>
-          <Link
-            href={currentPage === 1 ? "#" : `/blog?page=${currentPage - 1}`}
+          <button
+            onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
             className={`flex items-center px-3 py-2 rounded-md ${
               currentPage === 1
                 ? "text-gray-400 cursor-not-allowed"
                 : "text-gray-700 dark:text-gray-300 hover:text-theme-purple-700 dark:hover:text-theme-purple-400 hover:bg-theme-purple-50 dark:hover:bg-theme-purple-950/30"
             }`}
             aria-disabled={currentPage === 1}
-            onClick={(e) => currentPage === 1 && e.preventDefault()}
             aria-label="Previous page"
           >
             <ChevronLeft className="h-5 w-5" />
             <span className="sr-only">Previous</span>
-          </Link>
+          </button>
         </li>
 
         {pageNumbers.map((page, index) => (
@@ -87,8 +91,8 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
                 ...
               </span>
             ) : (
-              <Link
-                href={`/blog?page=${page}`}
+              <button
+                onClick={() => onPageChange(page)}
                 className={`px-3 py-2 rounded-md transition-colors duration-200 ${
                   currentPage === page
                     ? "bg-theme-purple-600 text-white"
@@ -98,28 +102,28 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
                 aria-current={currentPage === page ? "page" : undefined}
               >
                 {page}
-              </Link>
+              </button>
             )}
           </li>
         ))}
 
         <li>
-          <Link
-            href={
-              currentPage === totalPages ? "#" : `/blog?page=${currentPage + 1}`
+          <button
+            onClick={() =>
+              currentPage < totalPages && onPageChange(currentPage + 1)
             }
+            disabled={currentPage === totalPages}
             className={`flex items-center px-3 py-2 rounded-md ${
               currentPage === totalPages
                 ? "text-gray-400 cursor-not-allowed"
                 : "text-gray-700 dark:text-gray-300 hover:text-theme-purple-700 dark:hover:text-theme-purple-400 hover:bg-theme-purple-50 dark:hover:bg-theme-purple-950/30"
             }`}
             aria-disabled={currentPage === totalPages}
-            onClick={(e) => currentPage === totalPages && e.preventDefault()}
             aria-label="Next page"
           >
             <ChevronRight className="h-5 w-5" />
             <span className="sr-only">Next</span>
-          </Link>
+          </button>
         </li>
       </ul>
     </nav>

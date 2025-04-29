@@ -7,29 +7,31 @@ interface FilterPanelProps {
   categories: string[];
   tags: string[];
   authors: string[];
+  selectedCategory: string;
+  selectedTags: string[];
+  onCategoryChange: (category: string) => void;
+  onTagToggle: (tag: string) => void;
+  onAuthorChange?: (author: string) => void;
 }
 
-export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+export function FilterPanel({
+  categories,
+  tags,
+  authors,
+  selectedCategory,
+  selectedTags,
+  onCategoryChange,
+  onTagToggle,
+  onAuthorChange,
+}: FilterPanelProps) {
   const [selectedAuthor, setSelectedAuthor] = useState("All");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showTags, setShowTags] = useState(false);
 
-  const handleTagToggle = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
-    } else {
-      setSelectedTags([...selectedTags, tag]);
+  const handleAuthorChange = (author: string) => {
+    setSelectedAuthor(author);
+    if (onAuthorChange) {
+      onAuthorChange(author);
     }
-  };
-
-  const applyFilters = () => {
-    // This would normally trigger a filter action
-    console.log("Filtering by:", {
-      selectedCategory,
-      selectedAuthor,
-      selectedTags,
-    });
   };
 
   return (
@@ -40,7 +42,7 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
         </h3>
         <select
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+          onChange={(e) => onCategoryChange(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
         >
           {categories.map((category) => (
@@ -57,7 +59,7 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
         </h3>
         <select
           value={selectedAuthor}
-          onChange={(e) => setSelectedAuthor(e.target.value)}
+          onChange={(e) => handleAuthorChange(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
         >
           {authors.map((author) => (
@@ -92,7 +94,7 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
                   type="checkbox"
                   id={`tag-${tag}`}
                   checked={selectedTags.includes(tag)}
-                  onChange={() => handleTagToggle(tag)}
+                  onChange={() => onTagToggle(tag)}
                   className="h-4 w-4 text-theme-purple-600 focus:ring-theme-purple-500 border-gray-300 rounded"
                 />
                 <label
@@ -106,13 +108,6 @@ export function FilterPanel({ categories, tags, authors }: FilterPanelProps) {
           </div>
         )}
       </div>
-
-      <button
-        onClick={applyFilters}
-        className="w-full bg-theme-purple-600 hover:bg-theme-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
-      >
-        Apply Filters
-      </button>
     </div>
   );
 }

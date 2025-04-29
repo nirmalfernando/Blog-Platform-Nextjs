@@ -1,17 +1,20 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { Search } from "lucide-react";
 
-export function SearchBar() {
-  const [query, setQuery] = useState("");
+interface SearchBarProps {
+  onSearch: (query: string) => void;
+  initialValue?: string;
+}
+
+export function SearchBar({ onSearch, initialValue = "" }: SearchBarProps) {
+  const [query, setQuery] = useState(initialValue);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // This would normally trigger a search action
-    console.log("Searching for:", query);
+    onSearch(query);
   };
 
   return (

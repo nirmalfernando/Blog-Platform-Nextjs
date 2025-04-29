@@ -1,10 +1,11 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,19 +35,42 @@ export default function LoginPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     // Basic validation
     if (!formData.email || !formData.password) {
       setFormError("Please enter both email and password");
+      setIsLoading(false);
       return;
     }
 
-    // This would normally authenticate the user with your backend
-    console.log("Login data:", { ...formData, rememberMe });
+    try {
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
 
-    // Redirect to home page or dashboard after successful login
+      if (result?.error) {
+        setFormError(result.error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Redirect to home page or callback URL after successful login
+      router.push(callbackUrl);
+    } catch (error) {
+      setFormError("An unexpected error occurred. Please try again.");
+      console.error("Login error:", error);
+      setIsLoading(false);
+    }
+  };
+
+  const handleOAuthSignIn = (provider: string) => {
+    setIsLoading(true);
+    signIn(provider, { callbackUrl });
   };
 
   return (
@@ -87,6 +116,7 @@ export default function LoginPage() {
                 required
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="you@example.com"
+                disabled={isLoading}
               />
             </div>
 
@@ -108,6 +138,7 @@ export default function LoginPage() {
                   required
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-purple-500 focus:border-theme-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   placeholder="Enter your password"
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
@@ -154,9 +185,10 @@ export default function LoginPage() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-theme-purple-600 hover:bg-theme-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-theme-purple-500"
+                disabled={isLoading}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-theme-purple-600 hover:bg-theme-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-theme-purple-500 disabled:opacity-50"
               >
-                Sign in
+                {isLoading ? "Signing in..." : "Sign in"}
               </button>
             </div>
           </form>
@@ -176,7 +208,9 @@ export default function LoginPage() {
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                onClick={() => handleOAuthSignIn("google")}
+                disabled={isLoading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 <svg
                   className="h-5 w-5 mr-2"
@@ -204,7 +238,9 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                onClick={() => handleOAuthSignIn("github")}
+                disabled={isLoading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 <svg
                   className="h-5 w-5 mr-2"

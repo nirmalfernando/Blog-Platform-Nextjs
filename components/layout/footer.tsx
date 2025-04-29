@@ -7,7 +7,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <h3 className="text-lg font-semibold text-theme-purple-700 dark:text-theme-purple-400 mb-4">
-              Blog Platform
+              PastleBlog
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               A modern blogging platform built with Next.js, Tailwind CSS, and

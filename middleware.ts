@@ -6,8 +6,40 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
   const isAuthenticated = !!token;
   const isAdmin = token?.role === "ADMIN";
-  const isEditor = token?.role === "EDITOR";
-  const isAuthorized = isAdmin || isEditor;
+  const isEditor = token?.role === "ADMIN" || token?.role === "EDITOR";
+
+  // Protected routes
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(
+        new URL("/login?callbackUrl=/admin", request.url)
+      );
+    }
+
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
+  if (request.nextUrl.pathname.startsWith("/editor")) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(
+        new URL("/login?callbackUrl=/editor", request.url)
+      );
+    }
+
+    if (!isEditor) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
+  if (request.nextUrl.pathname.startsWith("/profile")) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(
+        new URL("/login?callbackUrl=/profile", request.url)
+      );
+    }
+  }
 
   // Protected API routes
   if (
@@ -18,7 +50,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!isAuthorized) {
+    if (!isEditor) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
@@ -48,5 +80,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/posts/:path*", "/api/comments/:path*", "/api/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/editor/:path*",
+    "/profile/:path*",
+    "/api/posts/:path*",
+    "/api/comments/:path*",
+    "/api/admin/:path*",
+  ],
 };
