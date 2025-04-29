@@ -36,7 +36,7 @@ A full-featured blog platform built with Next.js, Prisma, and PostgreSQL with au
 1. Clone the repository:
    ```bash
    git clone https://github.com/yourusername/nextjs-blog-platform.git
-   cd nextjs-blog-platform
+   cd Blog-Platform-Nextjs
    ```
 
 2. Install dependencies:
