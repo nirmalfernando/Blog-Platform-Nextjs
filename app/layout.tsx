@@ -9,7 +9,7 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Blog Platform",
+  title: "PastleBlog",
   description:
     "A modern blogging platform built with Next.js, Tailwind CSS, and TypeScript",
   generator: "v0.dev",
